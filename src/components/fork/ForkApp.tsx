@@ -22,6 +22,7 @@ import { BranchRail } from "./BranchRail";
 import { SettingsDialog } from "./SettingsDialog";
 import { CompareDialog } from "./CompareDialog";
 import forkLogo from "@/assets/fork-logo.png";
+import { EasterEggs, useLogoEgg } from "./EasterEggs";
 
 const CONV_KEY = "fork:conversations";
 const ACTIVE_KEY = "fork:active";
@@ -31,6 +32,8 @@ const AWARE_KEY = "fork:awareness";
 interface ReqError { message: string; rateLimited: boolean }
 
 export function ForkApp() {
+  const logoEgg = useLogoEgg();
+  const [railOpen, setRailOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [currentId, setCurrentId] = useState("");
@@ -229,12 +232,13 @@ export function ForkApp() {
   const pendingErr = active.role === "user" ? errors[active.id] : undefined;
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground md:flex-row">
+    <div className="flex h-dvh flex-col bg-background text-foreground md:flex-row">
+      <EasterEggs />
       {/* Conversations */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-          <img src={forkLogo} alt="Fork logo" width={24} height={24} className="size-6 rounded-sm" />
-          <span className="text-lg font-bold tracking-tight">Fork</span>
+          <img src={forkLogo} alt="Fork logo" width={24} height={24} onClick={logoEgg.onClick} className={`pixel-img size-7 cursor-pointer ${logoEgg.className}`} />
+          <span className="font-pixel text-xl tracking-wide text-primary">Fork</span>
         </div>
         <div className="p-2">
           <Button variant="outline" className="w-full justify-start" onClick={newConv}>
@@ -268,7 +272,7 @@ export function ForkApp() {
 
       {/* Mobile header */}
       <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2 md:hidden">
-        <img src={forkLogo} alt="Fork logo" width={24} height={24} className="size-6 rounded-sm" />
+        <img src={forkLogo} alt="Fork logo" width={24} height={24} onClick={logoEgg.onClick} className={`pixel-img size-7 cursor-pointer ${logoEgg.className}`} />
         <select aria-label="Conversation" value={currentId} onChange={(e) => setCurrentId(e.target.value)} className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm">
           {convs.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
         </select>
@@ -280,9 +284,9 @@ export function ForkApp() {
       <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void importConv(f); e.target.value = ""; }} />
 
       {/* Branch rail */}
-      <section className="max-h-36 shrink-0 overflow-auto border-b border-border bg-card md:max-h-none md:w-72 md:border-b-0 md:border-r" aria-label="Branch graph">
+      <section className={`${railOpen ? "max-h-48" : "max-h-9 overflow-hidden md:overflow-auto"} shrink-0 overflow-auto border-b border-border bg-card md:max-h-none md:w-72 md:border-b-0 md:border-r`} aria-label="Branch graph">
         <div className="sticky top-0 z-10 flex items-center gap-2 bg-card px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-          <GitBranch className="size-3.5" /> Branches
+          <button className="flex items-center gap-2 md:pointer-events-none" aria-expanded={railOpen} onClick={() => setRailOpen((o) => !o)}><GitBranch className="size-3.5" /> Branches <span className="md:hidden">{railOpen ? "▴" : "▾"}</span></button>
           {forkPoints(conv).length === 0 && path.filter((n) => n.role === "user").length > 1 && (
             <button onClick={findBranches} className="ml-auto rounded border border-border px-1.5 py-0.5 normal-case tracking-normal text-foreground hover:bg-accent">Find branches by topic</button>
           )}
@@ -340,7 +344,7 @@ export function ForkApp() {
                     )}
                   </div>
                   <div
-                    className={`fork-md max-w-[85%] break-words px-3 py-2 text-[13px] leading-snug ${isUser ? "rounded-2xl rounded-br-sm bg-primary text-primary-foreground" : "rounded-2xl rounded-bl-sm border border-border bg-card"}`}
+                    className={`fork-md max-w-[92%] md:max-w-[85%] break-words px-3 py-2 text-[13px] leading-snug ${isUser ? "rounded-2xl rounded-br-sm bg-primary text-primary-foreground" : "rounded-2xl rounded-bl-sm border border-border bg-card"}`}
                     style={isUser ? undefined : { borderLeftColor: color, borderLeftWidth: 3 }}
                   >
                     {isUser ? <p className="whitespace-pre-wrap">{n.content}</p> : <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{mathify(n.content)}</ReactMarkdown>}
@@ -385,7 +389,7 @@ export function ForkApp() {
                   <span className="normal-case">{progress || (stream ? "Writing…" : "Thinking…")} {(Math.max(0, now - startedAt) / 1000).toFixed(1)}s</span>
                 </div>
                 {stream && (
-                  <div className="fork-md max-w-[85%] break-words rounded-2xl rounded-bl-sm border border-border bg-card px-3 py-2 text-[13px] leading-snug"
+                  <div className="fork-md max-w-[92%] md:max-w-[85%] break-words rounded-2xl rounded-bl-sm border border-border bg-card px-3 py-2 text-[13px] leading-snug"
                     style={{ borderLeftColor: laneColorVar(laneOf[pending] ?? 0), borderLeftWidth: 3 }}>
                     <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{mathify(stream)}</ReactMarkdown>
                   </div>
@@ -430,7 +434,7 @@ export function ForkApp() {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
               rows={1}
               placeholder={active.role === "user" ? "Send as a new branch of your last message…" : "Message…"}
-              className="max-h-40 min-h-9 flex-1 resize-none rounded-md border border-input bg-card px-3 py-1.5 text-[13px]"
+              className="max-h-40 min-h-9 flex-1 resize-none rounded-md border border-input bg-card px-3 py-1.5 text-base md:text-[13px]"
             />
             <Button type="submit" size="icon" aria-label="Send" disabled={!input.trim() || !!pending}><Send /></Button>
           </div>

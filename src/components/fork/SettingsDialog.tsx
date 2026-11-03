@@ -23,6 +23,14 @@ export function SettingsDialog({
   onChange: (s: Settings) => void;
 }) {
   const gpu = hasWebGPU();
+  const [pixel, setPixel] = useState(true);
+  useEffect(() => { if (open) setPixel(document.documentElement.classList.contains("pixel")); }, [open]);
+  const togglePixel = () => {
+    const on = !pixel;
+    setPixel(on);
+    document.documentElement.classList.toggle("pixel", on);
+    try { localStorage.setItem("fork.pixel", on ? "on" : "off"); } catch { /* storage blocked */ }
+  };
   const [test, setTest] = useState<{ state: "idle" | "busy" | "ok" | "err"; msg?: string }>({ state: "idle" });
   const [secs, setSecs] = useState(0);
   useEffect(() => {
@@ -117,6 +125,14 @@ export function SettingsDialog({
             )}
           </div>
         )}
+        <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
+          <div>
+            <div className="font-semibold">Pixel theme</div>
+            <div className="font-mono text-[11px] text-muted-foreground">Retro pixel look across the app</div>
+          </div>
+          <button type="button" role="switch" aria-checked={pixel} aria-label="Pixel theme" onClick={togglePixel}
+            className={`rounded-md border px-3 py-1 text-xs ${pixel ? "border-primary text-primary" : "border-border"}`}>{pixel ? "on" : "off"}</button>
+        </div>
         <p className="font-mono text-[11px] text-muted-foreground">
           Free tiers have rate limits. If you hit one, switch provider or wait a minute.
         </p>
