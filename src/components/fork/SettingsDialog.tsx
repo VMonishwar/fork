@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { complete, hasWebGPU, WEBLLM_MODEL, type ProviderId, type Settings } from "@/lib/providers";
+import { readTheme, saveTheme, type Theme } from "@/lib/theme";
 
 const options: { id: ProviderId; name: string; blurb: string }[] = [
   { id: "free", name: "Free AI (no key)", blurb: "No setup — works instantly" },
@@ -24,7 +25,13 @@ export function SettingsDialog({
 }) {
   const gpu = hasWebGPU();
   const [pixel, setPixel] = useState(true);
-  useEffect(() => { if (open) setPixel(document.documentElement.classList.contains("pixel")); }, [open]);
+  const [theme, setTheme] = useState<Theme>("light");
+  useEffect(() => {
+    if (!open) return;
+    setPixel(document.documentElement.classList.contains("pixel"));
+    setTheme(readTheme());
+  }, [open]);
+  const pickTheme = (t: Theme) => { setTheme(t); saveTheme(t); };
   const togglePixel = () => {
     const on = !pixel;
     setPixel(on);
@@ -125,6 +132,18 @@ export function SettingsDialog({
             )}
           </div>
         )}
+        <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
+          <div>
+            <div className="font-semibold">Theme</div>
+            <div className="font-mono text-[11px] text-muted-foreground">Light is the default; dark is easier on the eyes at night</div>
+          </div>
+          <div className="flex gap-1" role="radiogroup" aria-label="Theme">
+            {(["light", "dark"] as const).map((t) => (
+              <button key={t} type="button" role="radio" aria-checked={theme === t} onClick={() => pickTheme(t)}
+                className={`rounded-md border px-3 py-1 text-xs capitalize ${theme === t ? "border-primary text-primary" : "border-border"}`}>{t}</button>
+            ))}
+          </div>
+        </div>
         <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
           <div>
             <div className="font-semibold">Pixel theme</div>

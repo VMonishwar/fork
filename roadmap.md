@@ -5,3 +5,7 @@
 - [x] Branch click always creates a branch (even from latest reply); no auto topic moves
 - [x] Streamed replies + reply time shown
 - [x] Key test: time limit, no slow retries, shows seconds
+- [x] Light mode as the default theme (dark palette kept in a .dark block)
+- [x] Tab icon redrawn as a 16x16 pixel fork so it reads small, on light and dark tabs
+- [x] GitHub synced with the light theme and new icon
+- [x] Theme switch in Settings (light default, dark remembered per browser)

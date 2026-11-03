@@ -105,7 +105,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en" className="pixel">
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('fork.pixel')==='off')document.documentElement.classList.remove('pixel')}catch(e){}" }} />
+        <script dangerouslySetInnerHTML={{ __html: "try{var d=document.documentElement;if(localStorage.getItem('fork.pixel')==='off')d.classList.remove('pixel');if(localStorage.getItem('fork.theme')==='dark')d.classList.add('dark')}catch(e){}" }} />
       </head>
       <body suppressHydrationWarning>
         {children}
