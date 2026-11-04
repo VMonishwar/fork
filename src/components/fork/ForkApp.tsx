@@ -21,10 +21,10 @@ import { complete, defaultSettings, providerLabel, ProviderError, type Settings 
 import { BranchRail } from "./BranchRail";
 import { SettingsDialog } from "./SettingsDialog";
 import { CompareDialog } from "./CompareDialog";
+import { loadChats, saveChats, requestPersistence } from "@/lib/chat-store";
 import forkLogo from "@/assets/fork-logo.png";
 import { EasterEggs, useLogoEgg } from "./EasterEggs";
 
-const CONV_KEY = "fork:conversations";
 const ACTIVE_KEY = "fork:active";
 const SETTINGS_KEY = "fork:settings";
 const AWARE_KEY = "fork:awareness";
@@ -58,8 +58,8 @@ export function ForkApp() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(CONV_KEY) || "[]");
+    requestPersistence();
+    void loadChats().then((saved) => { try {
       const list: Conversation[] = Array.isArray(saved) ? saved.filter(isConversation) : [];
       const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
       if (s) setSettings({ ...defaultSettings, ...s });
@@ -74,9 +74,10 @@ export function ForkApp() {
       setCurrentId(c.id);
     }
     setLoaded(true);
+    });
   }, []);
 
-  useEffect(() => { if (loaded) localStorage.setItem(CONV_KEY, JSON.stringify(convs)); }, [convs, loaded]);
+  useEffect(() => { if (loaded) saveChats(convs); }, [convs, loaded]);
   useEffect(() => { if (loaded) localStorage.setItem(ACTIVE_KEY, currentId); }, [currentId, loaded]);
   useEffect(() => { if (loaded) localStorage.setItem(AWARE_KEY, aware ? "on" : "off"); }, [aware, loaded]);
   useEffect(() => { if (loaded) localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }, [settings, loaded]);
@@ -237,8 +238,8 @@ export function ForkApp() {
       {/* Conversations */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-          <img src={forkLogo} alt="Fork logo" width={24} height={24} onClick={logoEgg.onClick} className={`pixel-img size-7 cursor-pointer ${logoEgg.className}`} />
-          <span className="font-pixel text-xl tracking-wide text-primary">Fork</span>
+          <img src={forkLogo} alt="Fork logo" width={32} height={32} onClick={logoEgg.onClick} className={`pixel-img size-8 shrink-0 cursor-pointer ${logoEgg.className}`} />
+          <span className="font-pixel text-xl leading-7 tracking-wide text-primary">Fork</span>
         </div>
         <div className="p-2">
           <Button variant="outline" className="w-full justify-start" onClick={newConv}>
@@ -272,7 +273,8 @@ export function ForkApp() {
 
       {/* Mobile header */}
       <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2 md:hidden">
-        <img src={forkLogo} alt="Fork logo" width={24} height={24} onClick={logoEgg.onClick} className={`pixel-img size-7 cursor-pointer ${logoEgg.className}`} />
+        <img src={forkLogo} alt="Fork logo" width={32} height={32} onClick={logoEgg.onClick} className={`pixel-img size-8 shrink-0 cursor-pointer ${logoEgg.className}`} />
+        <span className="font-pixel text-xl leading-7 tracking-wide text-primary">Fork</span>
         <select aria-label="Conversation" value={currentId} onChange={(e) => setCurrentId(e.target.value)} className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm">
           {convs.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
         </select>
